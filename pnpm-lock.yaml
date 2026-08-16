@@ -23,7 +23,13 @@ importers:
       sixdegrees:
         specifier: workspace:*
         version: link:../core
+      stopword:
+        specifier: ^3.1.5
+        version: 3.1.5
     devDependencies:
+      '@types/stopword':
+        specifier: ^2.0.3
+        version: 2.0.3
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
@@ -325,6 +331,9 @@ packages:
   '@types/node@26.2.0':
     resolution: {integrity: sha512-5IviulTZeRNp2vAJ514cc/HUlY5nZ9fCbq9DMyC52BrhFZACo3nI0R7qBxhQmo/d27NFe96ur/b7Wwxklda+kg==}
 
+  '@types/stopword@2.0.3':
+    resolution: {integrity: sha512-hioMj0lOvISM+EDevf7ijG8EMbU+J3pj4SstCyfQC1t39uPYpAe7beSfBdU6c1d9jeECTQQtR3UJWtVoUO8Weg==}
+
   adm-zip@0.5.18:
     resolution: {integrity: sha512-ufJnssQGbxzLNS1Ho9bCtX4rQKCCvoVuDLHoJyc3F9dOGDB4BkWs2Ci0kv53lqocAEQ/Cbi+I2XCsNYGqVYqng==}
     engines: {node: '>=12.0'}
@@ -553,6 +562,9 @@ packages:
 
   sprintf-js@1.1.3:
     resolution: {integrity: sha512-Oo+0REFV59/rz3gfJNKQiBlwfHaSESl1pcGyABQsnnIfWOFt6JNj5gCog2U6MLZ//IGYD+nA8nI+mTShREReaA==}
+
+  stopword@3.1.5:
+    resolution: {integrity: sha512-OgLYGVFCNa430WOrj9tYZhQge5yg6vd6JsKredveAqEhdLVQkfrpnQIGjx0L9lLqzL4Kq4J8yNTcfQR/MpBwhg==}
 
   tinyglobby@0.2.17:
     resolution: {integrity: sha512-wXR/dYpcqKmfWpEdZjiKJOwCNFndD0DMnrW/cYjVGttEkBfVgcLFHoNrlj47mjOVic9yyNu65alsgF4NQyTa2g==}
@@ -801,6 +813,8 @@ snapshots:
     dependencies:
       undici-types: 8.3.0
 
+  '@types/stopword@2.0.3': {}
+
   adm-zip@0.5.18: {}
 
   boolean@3.2.0: {}
@@ -1037,6 +1051,8 @@ snapshots:
   source-map-js@1.2.1: {}
 
   sprintf-js@1.1.3: {}
+
+  stopword@3.1.5: {}
 
   tinyglobby@0.2.17:
     dependencies:
