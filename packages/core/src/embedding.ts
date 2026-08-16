@@ -2,6 +2,18 @@ import { pipeline, type FeatureExtractionPipeline } from "@huggingface/transform
 import type { EmbeddingProvider } from "./types.js";
 
 /**
+ * Storage-agnostic cache for computed (post-normalization) embedding
+ * vectors, keyed by (modelId, text). No storage backend is implied here —
+ * hosts (browser, Node, Electron) implement this against whatever they have
+ * (filesystem, IndexedDB, in-memory, etc.) and pass an instance in via
+ * TransformersEmbeddingProvider's constructor options.
+ */
+export interface EmbeddingCache {
+  get(modelId: string, text: string): Promise<Float32Array | undefined>;
+  set(modelId: string, text: string, embedding: Float32Array): Promise<void>;
+}
+
+/**
  * transformers.js backend selection note:
  *
  * `@huggingface/transformers` (the actively maintained successor to
@@ -67,11 +79,19 @@ export class TransformersEmbeddingProvider implements EmbeddingProvider {
   private static pipelineCache = new Map<string, Promise<FeatureExtractionPipeline>>();
 
   private readonly onModelLoadProgress?: (progress: ModelLoadProgress) => void;
+  private readonly cache?: EmbeddingCache;
 
-  constructor(options: { modelId?: string; onModelLoadProgress?: (progress: ModelLoadProgress) => void } = {}) {
+  constructor(
+    options: {
+      modelId?: string;
+      onModelLoadProgress?: (progress: ModelLoadProgress) => void;
+      cache?: EmbeddingCache;
+    } = {},
+  ) {
     this.modelId = options.modelId ?? DEFAULT_MODEL_ID;
     this._dimensions = KNOWN_DIMENSIONS[this.modelId] ?? null;
     this.onModelLoadProgress = options.onModelLoadProgress;
+    this.cache = options.cache;
   }
 
   get dimensions(): number {
@@ -124,23 +144,48 @@ export class TransformersEmbeddingProvider implements EmbeddingProvider {
 
   async embed(texts: string[]): Promise<Float32Array[]> {
     if (texts.length === 0) return [];
-    const extractor = await this.getPipeline();
 
-    const output = await extractor(texts, { pooling: "mean", normalize: false });
-    // output.dims: [batch, hiddenSize]; output.data: flat Float32Array-like.
-    const dims = output.dims as number[];
-    const hiddenSize = dims[dims.length - 1]!;
-    const data = output.data as Float32Array;
+    const results: (Float32Array | undefined)[] = new Array(texts.length);
+    const missIndices: number[] = [];
 
-    if (this._dimensions === null) {
-      this._dimensions = hiddenSize;
+    if (this.cache) {
+      await Promise.all(
+        texts.map(async (text, i) => {
+          const cached = await this.cache!.get(this.modelId, text);
+          if (cached) {
+            results[i] = cached;
+          } else {
+            missIndices.push(i);
+          }
+        }),
+      );
+      missIndices.sort((a, b) => a - b);
+    } else {
+      for (let i = 0; i < texts.length; i++) missIndices.push(i);
     }
 
-    const vectors: Float32Array[] = [];
-    for (let i = 0; i < texts.length; i++) {
-      const slice = data.slice(i * hiddenSize, (i + 1) * hiddenSize);
-      vectors.push(unitNormalize(slice));
+    if (missIndices.length > 0) {
+      const extractor = await this.getPipeline();
+      const missTexts = missIndices.map((i) => texts[i]!);
+      const output = await extractor(missTexts, { pooling: "mean", normalize: false });
+      // output.dims: [batch, hiddenSize]; output.data: flat Float32Array-like.
+      const dims = output.dims as number[];
+      const hiddenSize = dims[dims.length - 1]!;
+      const data = output.data as Float32Array;
+
+      if (this._dimensions === null) {
+        this._dimensions = hiddenSize;
+      }
+
+      for (let j = 0; j < missIndices.length; j++) {
+        const i = missIndices[j]!;
+        const slice = data.slice(j * hiddenSize, (j + 1) * hiddenSize);
+        const vector = unitNormalize(slice);
+        results[i] = vector;
+        if (this.cache) await this.cache.set(this.modelId, texts[i]!, vector);
+      }
     }
-    return vectors;
+
+    return results as Float32Array[];
   }
 }
