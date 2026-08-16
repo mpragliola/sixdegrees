@@ -9,6 +9,7 @@ import {
   DEFAULT_OVERLAP,
 } from "./strategies.js";
 import { LabChunkIndex, type LabSearchResult, type SimilarityMetric } from "./chunkIndex.js";
+import { buildHighlightedNote, globalScoreRange } from "./highlight.js";
 
 const notesById = new Map<string, Note>(demoNotes.map((n) => [n.id, n]));
 
@@ -254,6 +255,8 @@ function renderResults() {
     return;
   }
 
+  const scoreRange = globalScoreRange(results.map((r) => r.matchedChunks));
+
   resultsEl.innerHTML = results
     .map((r) => {
       const note = notesById.get(r.noteId);
@@ -270,13 +273,15 @@ function renderResults() {
         .map(([layer, score]) => `<span class="badge">${escapeHtml(layer)}: ${score.toFixed(2)}</span>`)
         .join("");
 
+      const { titleHtml, bodyHtml } = buildHighlightedNote(note, r.matchedChunks, query, scoreRange);
+
       return `
         <div class="result-card">
           <div class="result-header">
-            <h3>${escapeHtml(note.title)}</h3>
+            <h3>${titleHtml}</h3>
             <span class="result-score">score ${r.score.toFixed(3)}</span>
           </div>
-          <p class="result-snippet">${escapeHtml(snippet(note.body))}</p>
+          <p class="result-body">${bodyHtml.replace(/\n/g, "<br>")}</p>
           <div class="badges">${badges}</div>
         </div>
       `;

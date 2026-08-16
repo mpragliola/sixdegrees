@@ -10,6 +10,8 @@
   --badge-fg: #22308c;
   --card-bg: #fafafa;
   --error: #b3261e;
+  --hl-rgb: 51, 85, 221;
+  --hl-exact-fg: #1a1a1a;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -24,6 +26,8 @@
     --badge-fg: #b7c2ff;
     --card-bg: #1d1e23;
     --error: #ff6b60;
+    --hl-rgb: 125, 147, 255;
+    --hl-exact-fg: #f2f2f2;
   }
 }
 
@@ -220,11 +224,27 @@ select {
   white-space: nowrap;
 }
 
-.result-snippet {
+.result-body {
   color: var(--muted);
   font-size: 0.87rem;
   margin: 6px 0 8px;
-  line-height: 1.4;
+  line-height: 1.6;
+}
+
+.result-header h3 .hl,
+.result-body .hl {
+  border-radius: 3px;
+  padding: 0.05em 0;
+  color: var(--fg);
+  background: rgba(var(--hl-rgb), var(--hl-alpha, 0));
+}
+
+.hl-exact {
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 2px;
+  color: var(--hl-exact-fg);
 }
 
 .badges {
