@@ -1,0 +1,69 @@
+import {
+  WholeNoteChunker,
+  ParagraphChunker,
+  SentenceWindowChunker,
+  TitleAwareLayeredChunker,
+  type ChunkingStrategy,
+} from "sixdegrees";
+
+export interface StrategyOption {
+  id: string;
+  label: string;
+  /** Layers this strategy can produce chunks in, for driving the weight-slider UI. */
+  layers: string[];
+  /** True if this strategy's chunker takes { windowSize, overlap }, for driving the window/overlap slider UI. */
+  hasWindowParams?: boolean;
+  create: (windowParams?: { windowSize: number; overlap: number }) => ChunkingStrategy;
+}
+
+export const DEFAULT_WINDOW_SIZE = 3;
+export const DEFAULT_OVERLAP = 1;
+
+export const strategyOptions: StrategyOption[] = [
+  {
+    id: "whole-note",
+    label: "Whole note",
+    layers: ["note"],
+    create: () => new WholeNoteChunker(),
+  },
+  {
+    id: "paragraph",
+    label: "Paragraphs",
+    layers: ["paragraph"],
+    create: () => new ParagraphChunker(),
+  },
+  {
+    id: "sentence-window",
+    label: "Sentence windows",
+    layers: ["sentence-window"],
+    hasWindowParams: true,
+    create: (windowParams) =>
+      new SentenceWindowChunker({
+        windowSize: windowParams?.windowSize ?? DEFAULT_WINDOW_SIZE,
+        overlap: windowParams?.overlap ?? DEFAULT_OVERLAP,
+      }),
+  },
+  {
+    id: "layered",
+    label: "Layered (title + note + paragraphs)",
+    layers: ["title", "note", "paragraph"],
+    create: () => new TitleAwareLayeredChunker(),
+  },
+];
+
+export const modelOptions = [
+  { id: "Xenova/all-MiniLM-L6-v2", label: "all-MiniLM-L6-v2 (fast, 384-dim)" },
+  { id: "Xenova/all-mpnet-base-v2", label: "all-mpnet-base-v2 (slower, 768-dim)" },
+];
+
+export const similarityOptions = [
+  { id: "cosine", label: "Cosine" },
+  { id: "dot", label: "Dot product" },
+  { id: "euclidean", label: "Euclidean" },
+  { id: "tfidf", label: "TF-IDF (lexical)" },
+] as const;
+
+export const fusionOptions = [
+  { id: "max", label: "Max" },
+  { id: "weighted-sum", label: "Weighted sum" },
+] as const;

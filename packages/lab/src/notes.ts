@@ -1,0 +1,267 @@
+export interface Note {
+  id: string;
+  title: string;
+  body: string;
+  createdAt: string; // ISO date string
+}
+
+export const demoNotes: Note[] = [
+  {
+    id: "note-1",
+    title: "Sourdough starter notes",
+    body: "Started a new sourdough culture using the ratio of 1:1:1 (starter:flour:water). Using whole wheat flour for the initial feedings to encourage wild yeast. Keep at room temperature (70-72F) and feed daily for the first week. Should be ready to bake with by day 7-10.",
+    createdAt: "2025-01-14",
+  },
+  {
+    id: "note-2",
+    title: "Q2 roadmap planning",
+    body: "Topics to cover:\n- Performance optimization for dashboard load times\n- User authentication overhaul (add 2FA)\n- API rate limiting improvements\n- Documentation for new webhook system\n- Deprecate legacy CSV export format",
+    createdAt: "2025-01-18",
+  },
+  {
+    id: "note-3",
+    title: "Bug: race condition in websocket reconnect",
+    body: "When client loses connection and attempts to reconnect while messages are still being queued, we're sending duplicates. The issue is in the reconnect handler - it doesn't check if there are pending messages before resending the queue. Need to implement a lock or use a Set to deduplicate client-side.",
+    createdAt: "2025-01-22",
+  },
+  {
+    id: "note-4",
+    title: "Kyoto trip - day 3 ideas",
+    body: "Morning: Fushimi Inari shrine (arrive early to beat crowds). Afternoon: Philosopher's Walk and temples. Evening: dinner in Gion district, try okonomiyaki. Pack umbrella - forecast shows 40% chance of rain.",
+    createdAt: "2025-02-01",
+  },
+  {
+    id: "note-5",
+    title: "Book notes: Atomic Habits",
+    body: "Key takeaways:\n1. Identity-based habits are stronger than goal-based habits\n2. Implementation intentions (if-then statements) dramatically increase follow-through\n3. The two-minute rule: scale down the habit until it takes less than 2 minutes\n4. Track habits visually (calendar method works surprisingly well)\n5. Environment design is as important as willpower\n\nApplying this to my morning routine - will create a visual tracker and focus on identity (\"I am someone who exercises daily\") rather than the goal itself.",
+    createdAt: "2025-02-05",
+  },
+  {
+    id: "note-6",
+    title: "Grocery list - this weekend",
+    body: "- Organic eggs (free range)\n- Greek yogurt\n- Cherry tomatoes\n- Cucumber\n- Whole grain bread\n- Olive oil (good quality)\n- Salmon fillets\n- Garlic, onions, fresh herbs\n- Mushrooms for risotto",
+    createdAt: "2025-02-08",
+  },
+  {
+    id: "note-7",
+    title: "1:1 with Sarah - career development",
+    body: "Discussed her interest in moving into a tech lead role. Action items: (1) Identify a senior engineer as a mentor, (2) Assign her a cross-team project to lead, (3) Review architectural decision doc process so she can participate more. Sarah also mentioned wanting to improve public speaking - suggested she present at the team sync next month.",
+    createdAt: "2025-02-12",
+  },
+  {
+    id: "note-8",
+    title: "Recipe: Sourdough ciabatta",
+    body: "Using the same starter as the regular sourdough but with higher hydration (80-85%). Mix dough, bulk ferment 4-6 hours (very wet, use wet hands). Shape gently into oval, final proof 1-2 hours. Bake on preheated stone at 475F for 25-30 minutes with steam. The extra water creates those beautiful big holes.",
+    createdAt: "2025-02-16",
+  },
+  {
+    id: "note-9",
+    title: "Product idea: meeting transcription tool",
+    body: "Problem: Salespeople spend 40% of their time on admin (logging calls, taking notes). Solution: AI-powered meeting transcription that auto-generates call summaries, action items, and customer sentiment. Quick research shows Gong, Chorus, and Otter already do this but they're expensive ($100+ per user/month). Could we build a niche solution for SMBs? Talk to potential customers at next industry conference.",
+    createdAt: "2025-02-20",
+  },
+  {
+    id: "note-10",
+    title: "Workout plan - March goals",
+    body: "Strength phase (8 weeks):\n- Monday: Chest & triceps\n- Wednesday: Back & biceps\n- Friday: Legs\n- Daily: 10 min core work\n\nGo for progressive overload - add 5 lbs when I hit 8+ reps on compound lifts. Eat at maintenance calories, protein 1g per lb bodyweight.",
+    createdAt: "2025-02-24",
+  },
+  {
+    id: "note-11",
+    title: "Article notes: Future of AI in healthcare",
+    body: "The article argues AI will reshape diagnostics but won't replace doctors - instead augment them. Key points: (1) AI excels at pattern recognition in imaging (radiology, pathology), (2) Still poor at contextual reasoning and patient history integration, (3) Regulatory hurdles are the real bottleneck, not technology, (4) Liability questions unresolved. Interesting case study of Mayo Clinic's early AI implementation - they found the value wasn't in automation but in flagging edge cases for human review.",
+    createdAt: "2025-03-02",
+  },
+  {
+    id: "note-12",
+    title: "Design system proposal",
+    body: "Creating a shared component library to reduce duplication across our 4 web apps. Phase 1: Button, input, card, modal (these are 60% of our usage). Phase 2: Tables, forms, navigation. Would build in React with TypeScript, host on npm internally. Estimated 3-week effort for Phase 1. Need buy-in from all platform leads.",
+    createdAt: "2025-03-06",
+  },
+  {
+    id: "note-13",
+    title: "Travel itinerary - Barcelona",
+    body: "Days 1-2: Gothic Quarter, Cathedral. Day 3: Park Güell (book tickets in advance!), Gaudí architecture walking tour. Day 4: Montjuïc (museum, magic fountain). Day 5: Beaches + Las Ramblas. Flights booked. Hotel near Plaça Reial. Rent a Vespa for Day 4.",
+    createdAt: "2025-03-10",
+  },
+  {
+    id: "note-14",
+    title: "Debugging: High memory usage in worker process",
+    body: "Process is consuming 2GB after 12 hours of uptime. Profiling shows:\n- Event listeners accumulating (not being cleaned up)\n- Cache in data service growing without bounds\n- Third-party SDK (aws-sdk v3) creating new client instances instead of reusing\n\nFix:\n1. Add 'removeAllListeners' in shutdown handler\n2. Implement LRU cache with max size\n3. Move AWS client to singleton pattern\n\nTest with load simulator before deploying to prod.",
+    createdAt: "2025-03-14",
+  },
+  {
+    id: "note-15",
+    title: "Camping trip checklist",
+    body: "Gear:\n- Tent, sleeping bag, pad\n- Cooking: stove, fuel, pan, utensils\n- Water: filter, bottles (3L minimum)\n- First aid kit\n- Headlamp, matches, multi-tool\n- Rope, carabiners\n\nFood:\n- Freeze-dried meals (lightweight)\n- Trail mix, energy bars\n- Coffee/tea, salt packets",
+    createdAt: "2025-03-18",
+  },
+  {
+    id: "note-16",
+    title: "1:1 with James - performance review prep",
+    body: "James is a strong performer but can be defensive in code reviews. Need to frame feedback carefully. Discussed: (1) His impact on the team (real and significant), (2) Opportunity to grow as a mentor/reviewer, (3) Communication style - suggestion to ask questions instead of stating issues. He seemed receptive. Will revisit in 2 weeks.",
+    createdAt: "2025-03-22",
+  },
+  {
+    id: "note-17",
+    title: "Machine learning basics - reading list",
+    body: "Refreshing ML knowledge:\n- 'Hands-On Machine Learning' by Aurélien Géron (practical, implementation-focused)\n- 'Mathematics for Machine Learning' (for understanding the theory)\n- Fast.ai courses (top-down learning, very good)\n- Kaggle competitions (hands-on practice)\n\nStarting with regression models and classification. Build a small project to predict house prices using public dataset.",
+    createdAt: "2025-03-26",
+  },
+  {
+    id: "note-18",
+    title: "Team retrospective notes - Sprint 12",
+    body: "What went well:\n- Shipped 2-day feature ahead of schedule (great ownership from team)\n- Improved PR review turnaround (now under 4 hours)\n\nWhat didn't go well:\n- Acceptance criteria unclear on one epic (led to rework)\n- Production incident on Thursday (database connection leak)\n\nAction items:\n- Implement template for AC (Priya to create by next week)\n- Post-mortem on database issue (schedule for Wed)\n- Reserve 20% of capacity for tech debt (starting next sprint)",
+    createdAt: "2025-03-30",
+  },
+  {
+    id: "note-19",
+    title: "Sourdough troubleshooting",
+    body: "Recent loaves are dense and gummy inside. Possible causes: (1) Underproofed, (2) Oven not hot enough, (3) Cut into loaf too early. Will try: longer final proof (2.5-3 hours instead of 2), preheat oven for 45 minutes instead of 30, let cool for 1 hour before slicing. Also checking hydration - might be too high at 85%.",
+    createdAt: "2025-04-03",
+  },
+  {
+    id: "note-20",
+    title: "Security audit findings",
+    body: "Completed quarterly security review. Findings (by severity):\n\nCritical: API keys logged in debug mode (fix immediately - affected staging only)\n\nHigh: CORS policy too permissive (should whitelist specific origins, not *)\n\nMedium: Dependency vulnerabilities in lodash and moment.js (update version)\n\nLow: Missing security headers (CSP, X-Frame-Options)\n\nCritical fix deployed today. High priority by end of sprint. Others on roadmap for Q3.",
+    createdAt: "2025-04-07",
+  },
+  {
+    id: "note-21",
+    title: "Restaurant recommendation: Alinea notes",
+    body: "Finally went to Alinea. Wow. 3-hour omakase-style tasting. Standout dishes: the edible balloon dessert (literally a balloon made of sugar), the antacid tablet that tastes like tomato (amazing technique), the tree branch garnish made entirely from herbs. Service was impeccable. Price: $195 per person without drinks. Worth it for a special occasion.",
+    createdAt: "2025-04-11",
+  },
+  {
+    id: "note-22",
+    title: "API design review: User management endpoints",
+    body: "Reviewed the new user CRUD endpoints. Feedback:\n\nStrengths:\n- Clear, RESTful design\n- Good pagination implementation\n\nNeeds improvement:\n- Missing 429 rate limiting headers\n- Validation errors should use standard format (currently inconsistent)\n- Create endpoint should return 201 Created, not 200 OK\n- Add idempotency key support for POST requests\n\nAlso need to define: what happens when you update a user while they're logged in? Session invalidation? Scheduled for follow-up next week.",
+    createdAt: "2025-04-15",
+  },
+  {
+    id: "note-23",
+    title: "Dentist appointment",
+    body: "Tuesday 2pm with Dr. Chen. Bring insurance card and list of current medications. Schedule cleaning in 6 months.",
+    createdAt: "2025-04-19",
+  },
+  {
+    id: "note-24",
+    title: "Podcast ideas for engineering blog",
+    body: "Potential episode topics:\n1. 'How we built the data pipeline that processes 10B events/day' (interview with Kumar)\n2. 'Migrating from monolith to microservices: what we learned' (war stories)\n3. 'Hiring and scaling engineering teams' (roundtable with 3 CTOs)\n4. 'Open source contributions: the business case' (why we invest in OSS)\n\nTarget audience: engineering managers, architects. Start with episode 1 in May.",
+    createdAt: "2025-04-23",
+  },
+  {
+    id: "note-25",
+    title: "Home renovation budget",
+    body: "Kitchen remodel planning:\n\nContractor quotes:\n- Option A: $45K (6 weeks, mid-range materials)\n- Option B: $32K (8 weeks, standard materials)\n- Option C: $58K (4 weeks, premium appliances)\n\nWe can afford Option A comfortably. Going with that timeline. Get 3 references for each contractor before deciding.",
+    createdAt: "2025-04-27",
+  },
+  {
+    id: "note-26",
+    title: "Interview feedback: Candidate X",
+    body: "Technical screen:\n\nStrengths: Strong fundamentals, solved the algorithm problem cleanly, asked clarifying questions\n\nWeaknesses: Struggled with system design (scaled example felt unpracticed), didn't think about trade-offs\n\nOverall: Move to next round (system design round). Recommend mock interview first to prepare them better. Good communication, genuine interest in the role.",
+    createdAt: "2025-05-01",
+  },
+  {
+    id: "note-27",
+    title: "Fitness milestone - 1 mile run",
+    body: "Hit my goal of running 1 mile non-stop! Took longer than expected (11 minutes) but didn't walk once. Breathing got tough around the 0.75 mark but pushed through. Next goal: sub-10 minute mile by end of June. Need to run 4x per week consistently.",
+    createdAt: "2025-05-05",
+  },
+  {
+    id: "note-28",
+    title: "Database migration plan",
+    body: "Moving from PostgreSQL 11 to PostgreSQL 15. Strategy:\n\n1. Set up new RDS instance (same specs)\n2. pg_dump from old, restore to new in staging\n3. Run test suite against staging (ensure no compatibility issues)\n4. Enable logical replication (continuous sync)\n5. Parallel read traffic to validate (week 1)\n6. Cutover writes (10 min maintenance window)\n7. Monitor for 24 hours\n\nRollback plan: keep old instance for 48 hours before decommissioning. Timeline: 2 weeks.",
+    createdAt: "2025-05-09",
+  },
+  {
+    id: "note-29",
+    title: "Book recommendation: The Pragmatic Programmer",
+    body: "Re-reading this classic. Still holds up amazingly well - written in 1999 but feels current. Key insight I'm taking away this time: 'Don't repeat yourself' applies not just to code but to knowledge and processes. We should build tools and documentation to eliminate manual, repetitive work.",
+    createdAt: "2025-05-13",
+  },
+  {
+    id: "note-30",
+    title: "Email campaign strategy - Q3 launch",
+    body: "Promoting new product tier:\n\nSegments:\n1. Current free users (upsell message)\n2. Churned users (win-back + discount offer)\n3. Freemium power users (case studies from similar customers)\n\nTimeline:\n- Day 1: Announcement email to all\n- Day 3-5: Segment-specific campaigns\n- Day 10: Follow-up to non-openers\n- Day 20: Last chance offer\n\nA/B test subject lines. Target 5% conversion from free to paid tier.",
+    createdAt: "2025-05-17",
+  },
+  {
+    id: "note-31",
+    title: "Mentoring conversation with Alex",
+    body: "Alex is frustrated with the lack of growth opportunities. We discussed: (1) Finding high-impact projects within current role, (2) Skill gaps and a learning plan (frontend testing, system design), (3) Feedback culture - he's not getting enough feedback on his work. Action: I'll do bi-weekly 1:1s focusing on growth, and loop in the team lead to ensure Alex gets higher-visibility work.",
+    createdAt: "2025-05-21",
+  },
+  {
+    id: "note-32",
+    title: "Sourdough hydration experiments",
+    body: "Testing different hydration levels to find the sweet spot:\n\n75% hydration: Easy to handle, decent oven spring, smaller crumb\n80% hydration: Sweet spot - good oven spring, nice large holes, manageable\n85% hydration: Beautiful holes but harder to shape, sticks to everything\n\nSticking with 80% for regular loaves. Also noticed the fermentation temperature matters hugely - warmer (75F) = faster fermentation, better flavor development.",
+    createdAt: "2025-05-25",
+  },
+  {
+    id: "note-33",
+    title: "Conference talk submission - Cloud Native Summit",
+    body: "Submitted talk: 'Scaling to 1 Billion Events Per Day: Infrastructure Lessons Learned'. Abstract focuses on: (1) The cost of getting it wrong, (2) How we redesigned around predictability not throughput, (3) The tooling we built in-house. Should hear back in 2 weeks. Preparing slides regardless in case we're accepted.",
+    createdAt: "2025-06-01",
+  },
+  {
+    id: "note-34",
+    title: "Incident postmortem - API outage June 1",
+    body: "Lasted 23 minutes. Root cause: Code deploy at 2am Pacific accidentally removed a key validation check, allowing malformed requests through, which crashed the parser.\n\nWhat went wrong:\n- No staging validation (would have caught this)\n- Deploys at 2am are risky\n- No feature flag for this change\n\nWhat we're fixing:\n- All non-critical deployments go to staging first (always)\n- Deployments between midnight-6am must be pre-approved\n- High-risk changes require feature flags\n- Monitoring alerts for parser error spikes",
+    createdAt: "2025-06-05",
+  },
+  {
+    id: "note-35",
+    title: "Summer reading list",
+    body: "Fiction: 'Project Hail Mary' (sci-fi, fun), 'Tomorrow, and Tomorrow, and Tomorrow' (literary fiction about friendship and games)\n\nNon-fiction: 'Sapiens' (want a refresher), 'The Innovators' (history of computing)\n\nGoal: 1 book every 2 weeks. Currently on page 150 of Hail Mary. If I keep my current pace, should finish by early September.",
+    createdAt: "2025-06-09",
+  },
+  {
+    id: "note-36",
+    title: "Architecture Review: Real-time Analytics Engine Design",
+    body: "After three months of development, I'm reflecting on the engineering decisions we made when building our real-time analytics engine. The system now processes 50K events per second with sub-500ms latency to the dashboard. This was a significant undertaking that pushed us to rethink our entire data pipeline architecture from the ground up. When we started, our previous system could barely handle 5K events per second, and the latency was often 5-10 seconds. The business demanded real-time insights, so we had to completely redesign.\n\nThe core challenge we faced was reconciling two competing demands: freshness and accuracy. Real-time dashboards need data almost instantly, but we also need to ensure the numbers are correct for billing and compliance. We solved this by implementing a two-tier system: a fast path using approximate algorithms for real-time updates (HyperLogLog for cardinality, sketch structures for quantiles), and a slow path using exact computation that catches up in the background. This allows the UI to show live trends while still maintaining correctness for billing and reporting. The approximate path introduces minimal error - typically less than 1% - which is acceptable for real-time dashboards but unacceptable for financial reporting.\n\nOn the infrastructure side, we chose Kafka over RabbitMQ after evaluating both for three weeks. Initially we were skeptical - Kafka seemed like overkill for our use case - but the immutable log architecture and consumer group semantics turned out to be exactly what we needed for replaying events during backfills and handling late-arriving data. The tradeoff was operational complexity. Kafka requires more careful tuning and monitoring than simpler message queues, but for our scale it was worth it. We're running a 5-node cluster with replication factor of 3, which gives us reliability and the ability to scale to even higher throughput in the future.\n\nThe most interesting technical decision was around state management. We initially considered a distributed database like Cassandra for storing aggregation state, but realized that for windowed aggregations, we could use Redis with a clever partitioning scheme. Each compute node owns a shard of the key space and maintains its local state in Redis, keyed by time windows and dimensions. On restarts, we replay from Kafka to reconstruct state. This eliminated the need for a distributed consensus protocol, which would have added latency and operational headaches. We also get the benefit of fast in-memory access for recent windows, with automatic expiration for old data.\n\nMonitoring and observability were critical. We use Prometheus for metrics, with custom dashboards for pipeline latency, throughput per topic, and consumer lag. We also invested heavily in structured logging so we can trace individual events through the system. This has been invaluable for debugging production issues - we can see exactly where latency is creeping in.\n\nLooking back, I'd make a few different choices. We spent too long optimizing the UI rendering before the data pipeline was stable - that was a prioritization mistake. The UI team was blocked waiting for APIs that weren't ready. Also, we should have invested in better chaos engineering practices earlier; discovering failure modes in production is expensive. We had an outage when a Kafka broker crashed that exposed a bug in our consumer restart logic. We fixed it, but the incident was avoidable with proper chaos testing.\n\nOne decision I'm particularly proud of was hiring a senior infrastructure engineer specifically to own the observability layer. This person pushed back on our initial minimal logging approach and convinced us to invest in comprehensive structured logging. This investment paid for itself within weeks when debugging latency issues. The team now has visibility into exactly what's happening at every stage of the pipeline.\n\nAnother interesting lesson: we underestimated the importance of backpressure handling. When dashboard traffic spikes during market opens, our event stream can temporarily back up. We had to implement careful batching and queuing strategies to prevent our compute nodes from crashing. This is the kind of edge case that doesn't show up in load tests but bites you in production.\n\nOverall, I'm proud of the design. It's simple enough to reason about, performant, and has proven reliable in production for six months now. We're processing over 2 trillion events monthly, and the system handles that scale gracefully. The architecture is also modular enough that we can replace individual components. We've already swapped out the alerting system and upgraded the Redis cluster without downtime.",
+    createdAt: "2025-06-15",
+  },
+  {
+    id: "note-37",
+    title: "Japan Travel Journal - Summer 2025",
+    body: "Day 1 (Tokyo): Arrived exhausted after a 12-hour flight from San Francisco. Checked into a small ryokan in Shibuya that I'd booked months ago based on glowing reviews. The owner, Tanaka-san, was incredibly gracious despite my terrible Japanese and pidgin bowing. Stumbled through Shibuya Crossing at night - the energy is absolutely unreal, tens of thousands of people crossing at once in perfect coordination without a single collision. The scale of human movement here is unlike anything in the US. Had dinner at a tiny ramen shop squeezed between two larger restaurants, the kind of place tourists miss. Slurped authentically (apparently required by local custom - quiet eating is considered disrespectful to the chef). The pork broth was complex and deeply satisfying after hours of airplane food. The owner watched me eat with a slight smile, clearly approving. Jet lag hit hard by midnight.\n\nDay 2 (Tokyo): Woke up at 4am, gave up fighting it. Visited Senso-ji Temple in Asakusa, arriving as the city was still waking. The morning light filtered through the traditional wooden structures was breathtaking. Bought a fortune (drew \"good luck\") and watched monks preparing for the day. Wandered through the street vendors selling everything from tourist trinkets to beautiful handmade crafts. Picked up fresh mochi for later snacking. Afternoon: Meiji Shrine forest walk - surprisingly quiet and peaceful given we're in the middle of Tokyo. The 1500-year-old forest feels untouched, with only the occasional tour group breaking the silence. The contrast between nature and the bustling city blocks away is striking. Visited a small café near the shrine and had the best matcha I've ever tasted.\n\nDay 3 (Kyoto): Took the shinkansen (bullet train) from Tokyo - so smooth, so fast, so clean. Watched Mount Fuji appear briefly through the clouds, a perfect snow-capped silhouette. It felt like a good omen. In Kyoto, rented bicycles and got delightfully lost in residential neighborhoods away from the tourist trail. Stumbled upon a small neighborhood shrine with exactly three visitors and an old priest tending the grounds. He waved to us warmly. Had lunch at a traditional kaiseki restaurant - a 12-course progression of mountain vegetables, fish, and seasonal delicacies. Each course was presented like a small artwork, with careful attention to color, texture, and temperature. Cost more than I'd planned to spend on any single meal, but the experience was utterly unforgettable. The chef himself came out to explain each course.\n\nDay 4 (Kyoto): Arashiyama Bamboo Grove early in the morning before tourists arrive. Walking through groves of bamboo so tall they create a cathedral-like feeling. The stalks creak in the breeze - supposedly the sound changes with season and weather. Visited Tenryu-ji Temple and its stunning rock garden, supposedly representing islands in an ocean. The philosophy of Japanese minimalism - that what you don't show is as important as what you do - started to click for me intellectually, not just aesthetically. We sat for 20 minutes just looking, and I felt genuinely calm. Evening: Philosopher's Walk with cherry blossoms reflected in the canal, a path I'd read about in travel guides. It was exactly as described, but also entirely personal and meditative. Honestly, I could have stayed in Kyoto forever.\n\nDay 5 (Osaka): Day trip from Kyoto. Osaka Castle reconstructed in modern concrete but impressive in scale and commanding views of the city. Dotonbori district is pure neon chaos - street food stalls, pachinko parlors, and packs of tourists - the opposite of Kyoto's zen. Incredible street food: takoyaki (octopus balls), okonomiyaki (Japanese pancakes), yakitori (grilled chicken skewers). Taste-tested five different stalls. Met a local software engineer at a coffee shop through a language exchange app who explained the Kansai accent and regional pride. Osaka residents are loud and genuinely friendly compared to the reserved Tokyo culture. We talked for two hours about work, travel, and life.\n\nDay 6 (Kyoto return): Back to Kyoto for my last full day. Visited Fushimi Inari - thousands of vermillion torii gates creating an endless tunnel up the mountainside. Started at dawn, hiked for two hours barely seeing another person, feeling like I had the entire shrine to myself. By afternoon, it was packed with thousands of visitors. Lesson learned: timing is everything for major sites. Had dinner at an izakaya with coworkers I'd made friends with throughout the trip, drank sake, and sang karaoke badly but enthusiastically. Left Japan with deep gratitude and already planning a return trip.",
+    createdAt: "2025-06-22",
+  },
+  {
+    id: "note-38",
+    title: "Bug: stale closure in useEffect",
+    body: "Spent 2 hours debugging a subtle React issue today. The search input was running the API call with stale values from the query parameter, even though the state had been updated.\n\nThe problematic code looked like this:\n\nconst SearchComponent = ({ initialQuery }) => {\n  const [query, setQuery] = useState(initialQuery);\n  const [results, setResults] = useState([]);\n\n  useEffect(() => {\n    const fetchResults = async () => {\n      const res = await fetch(`/api/search?q=${initialQuery}`);\n      const data = await res.json();\n      setResults(data);\n    };\n    fetchResults();\n  }, [initialQuery]);\n\n  return (\n    <div>\n      <input value={query} onChange={(e) => setQuery(e.target.value)} />\n      <button onClick={() => window.location.href = `/search?q=${query}`}>\n        Search\n      </button>\n      {results.map(r => <div key={r.id}>{r.title}</div>)}\n    </div>\n  );\n};\n\nThe bug: the useEffect was capturing `initialQuery` in its closure and using that for the API call, but the user was updating `query` in local state. These are two different variables. The button click would navigate using the updated `query`, but the useEffect would always use the original `initialQuery`.\n\nThe fix was to add `query` to the dependency array and use `query` inside the effect, not `initialQuery`. Also added a debounce to avoid fetching on every keystroke. This is a classic closure-over-stale-state bug that's easy to miss because the component still works - it just doesn't work the way users expect.",
+    createdAt: "2025-06-28",
+  },
+  {
+    id: "note-39",
+    title: "SQL query for monthly churn report",
+    body: "Built a query to calculate monthly churn rate for the analytics dashboard. This needs to identify which customers cancelled in each month and express it as a percentage of active customers.\n\nHere's the query (Postgres):\n\nWITH monthly_actives AS (\n  SELECT\n    DATE_TRUNC('month', created_at)::date as month,\n    COUNT(DISTINCT user_id) as active_users\n  FROM subscriptions\n  WHERE status = 'active'\n  GROUP BY month\n),\nmonthly_churned AS (\n  SELECT\n    DATE_TRUNC('month', cancelled_at)::date as month,\n    COUNT(DISTINCT user_id) as churned_users\n  FROM subscriptions\n  WHERE status = 'cancelled'\n  GROUP BY month\n)\nSELECT\n  ma.month,\n  ma.active_users,\n  COALESCE(mc.churned_users, 0) as churned_users,\n  ROUND(100.0 * COALESCE(mc.churned_users, 0) / ma.active_users, 2) as churn_rate_percent\nFROM monthly_actives ma\nLEFT JOIN monthly_churned mc ON ma.month = mc.month\nORDER BY ma.month DESC;\n\nKey design decisions: (1) Used DATE_TRUNC for consistent monthly buckets (important for timezones), (2) Separated active and churned into CTEs for clarity, (3) COALESCE handles months with zero churn, (4) LEFT JOIN ensures we show all months even if no churn occurred that month.",
+    createdAt: "2025-07-05",
+  },
+  {
+    id: "note-40",
+    title: "Docker optimization notes",
+    body: "Working on reducing Docker image size for our Node services. Currently shipping at 850MB, need to get under 500MB for faster deployments.\n\nHere's the optimized Dockerfile:\n\nFROM node:20-alpine AS builder\nWORKDIR /app\nCOPY package*.json ./\nRUN npm ci --only=production && npm cache clean --force\nCOPY src ./src\nRUN npm run build\n\nFROM node:20-alpine\nWORKDIR /app\nRUN apk add --no-cache dumb-init\nCOPY --from=builder /app/node_modules ./node_modules\nCOPY --from=builder /app/dist ./dist\nCOPY --from=builder /app/package*.json ./\nEXPOSE 3000\nENTRYPOINT [\"dumb-init\", \"--\"]\nCMD [\"node\", \"dist/index.js\"]\n\nKey optimizations: (1) Multi-stage build - separate build environment from runtime, eliminating dev dependencies and source code from final image, (2) Alpine base instead of debian - 150MB savings, (3) `npm ci` instead of npm install for reproducible installs in CI, (4) npm cache clean to remove unnecessary files, (5) dumb-init as entrypoint to handle signals properly, (6) Only copy what's needed to runtime. Result: 380MB final image, 2.3x smaller than the original.",
+    createdAt: "2025-07-12",
+  },
+  {
+    id: "note-41",
+    title: "Implementing rate limiting - design notes",
+    body: "Just finished implementing a token bucket rate limiter for our API. This was more nuanced than I initially thought, and the approach evolved as I worked through edge cases.\n\nThe basic concept is simple: each client gets a bucket with N tokens. Each request costs 1 token. Tokens refill at a constant rate (e.g., 100 tokens per minute). If the bucket is empty, reject the request. Here's a simplified version:\n\nclass RateLimiter {\n  constructor(maxTokens, refillRate) {\n    this.maxTokens = maxTokens;\n    this.refillRate = refillRate; // tokens per second\n    this.tokens = maxTokens;\n    this.lastRefill = Date.now();\n  }\n\n  isAllowed() {\n    const now = Date.now();\n    const timePassed = (now - this.lastRefill) / 1000;\n    this.tokens = Math.min(\n      this.maxTokens,\n      this.tokens + timePassed * this.refillRate\n    );\n    this.lastRefill = now;\n\n    if (this.tokens >= 1) {\n      this.tokens -= 1;\n      return true;\n    }\n    return false;\n  }\n}\n\nBut the real challenge was distributed rate limiting. Since we have multiple API servers, we can't just keep state in memory. A request hitting server A and the next hitting server B would bypass the limiter. We solved this using Redis: each client's bucket state is stored in Redis with a key like `ratelimit:user-123`. We use Lua scripts in Redis to atomically check and update the token count, eliminating race conditions.\n\nAnother gotcha: clock skew. If multiple servers have slightly different system clocks, the refill calculation becomes inconsistent. We solved this by always using the Redis server's clock for refill calculations, never the application server's time.\n\nThe third issue was graceful degradation. If Redis goes down, we don't want to completely disable rate limiting, but we also don't want to reject all requests. Our solution: fall through to a local in-memory limiter that's less strict, and log the incident. Users get limited service but not a total outage.\n\nFinally, we needed to return useful headers for clients: X-RateLimit-Limit (max requests), X-RateLimit-Remaining (tokens left), X-RateLimit-Reset (when they'll get more tokens). These let clients implement smart backoff strategies instead of just hammering the API. We spent a whole sprint getting the retry logic right in downstream services, but it was worth it.",
+    createdAt: "2025-07-20",
+  },
+  {
+    id: "note-42",
+    title: "Postmortem: checkout outage on 2025-07-28",
+    body: "Incident summary: checkout was fully down for 47 minutes on 2025-07-28, from 14:03 to 14:50 UTC. Estimated impact: ~1,900 failed checkout attempts, ~$62k in lost revenue for the window, plus an unknown amount of abandoned carts in the following hour as customers hit stale error pages.\n\nTimeline:\n- 13:55 - A routine deploy of the payments service (v2.114.0) rolls out. The deploy includes a change to how we validate promo codes, moving validation from an in-process cache to a synchronous call against the promotions service.\n- 14:03 - Checkout error rate begins climbing. First PagerDuty alert fires for elevated 5xx rate on /api/checkout/complete.\n- 14:05 - On-call engineer (me) acknowledges. Initial dashboards show payments service latency p99 spiking from 180ms to 9200ms.\n- 14:09 - Promotions service dashboards show it is completely saturated - CPU pegged at 100% across all 6 pods. Connection pool exhaustion on its database.\n- 14:12 - We identify the correlation with the 13:55 payments deploy but haven't yet connected the specific cause. Initial hypothesis is a database issue unrelated to the deploy (wrong - this cost us 10 minutes).\n- 14:22 - Engineer notices the promo code validation change in the deploy diff. Every checkout request, even ones without a promo code applied, was now making a synchronous gRPC call to the promotions service to check for auto-apply promotions. Previously this was a cached lookup refreshed every 5 minutes.\n- 14:25 - Decision made to roll back the payments service deploy rather than attempt a hotfix, given severity.\n- 14:31 - Rollback initiated via our deploy pipeline.\n- 14:44 - Rollback completes across all regions (took longer than expected - 13 minutes instead of the usual 4, because the deploy pipeline was also contending with the elevated load from retries).\n- 14:50 - Error rates return to baseline. Incident declared resolved.\n- 15:30 - Follow-up: noticed the promotions service was still recovering from connection pool exhaustion for another 20 minutes after the rollback, though this didn't affect checkout since it was no longer in the critical path.\n\nRoot cause: The promo code validation refactor was intended to fix a bug where auto-apply promotions could be stale for up to 5 minutes (a real but low-severity issue - maybe a dozen customer complaints a month). The fix was reviewed and approved, but the load test used to validate it only tested the promotions service in isolation, at expected promo-code-lookup volume. It did not account for the fact that after this change, EVERY checkout request would hit the promotions service, not just the ones actually applying a promo code. This is roughly 40x the request volume the promotions service was provisioned and tested for. The connection pool (sized for the old traffic pattern) exhausted almost immediately under real production load, and since the call was synchronous and blocking, this backpressure propagated directly into checkout latency and then failures.\n\nContributing factors:\n1. The load test for the promo validation change tested the promotions service directly, not through the actual checkout path, so it never exercised the new call pattern.\n2. No circuit breaker existed between payments and promotions - a slow/failing dependency was allowed to take down the entire checkout flow instead of degrading gracefully (e.g., skip auto-apply promo check and proceed with checkout).\n3. The connection pool size for the promotions service database was never revisited after the traffic pattern changed; it was still sized for the old cached-lookup era.\n4. Initial triage lost ~10 minutes chasing a database hypothesis before connecting the dots to the recent deploy - our deploy-correlation dashboard wasn't prominent enough in the on-call runbook.\n5. Rollback took 3x longer than expected under load, extending the incident by roughly 9 minutes.\n\nAction items:\n- [P0] Add a circuit breaker around the promotions service call in checkout, with a fallback to 'no auto-apply promo' rather than failing the whole request. Owner: payments team. Due: 2025-08-04.\n- [P0] Right-size the promotions service connection pool and add autoscaling based on request volume, not just CPU. Owner: promotions team. Due: 2025-08-04.\n- [P1] Require load tests for any change that alters the request volume or fan-out pattern of a service dependency, not just changes to the service itself. Update the deploy checklist template. Owner: platform team.\n- [P1] Make the deploy-correlation view the first panel in the on-call dashboard, not buried three tabs deep. Owner: SRE.\n- [P2] Investigate why rollback took 13 minutes instead of 4 under load; likely the pipeline itself needs a fast-path for emergency rollbacks that bypasses the normal canary stages. Owner: platform team.\n- [P2] Customer comms: send a follow-up email to affected customers with a discount code, since some had promo codes that failed to apply due to the outage window overlap. Owner: support lead.\n\nBlameless note: the engineer who wrote the promo validation change did everything asked of them in code review - the gap was entirely in our testing practices not covering call-pattern changes, and the missing circuit breaker was a known but deprioritized piece of tech debt. Nobody should read this as 'don't refactor stale-cache bugs.'",
+    createdAt: "2025-07-29",
+  },
+  {
+    id: "note-43",
+    title: "Home network overhaul - full writeup",
+    body: "Finally did the network overhaul I've been putting off for two years. Documenting everything here in case I need to redo it or explain it to future me.\n\nMotivation: WiFi dead zone in the back bedroom, video calls dropping during the workday when the kids are also on Netflix, and the old router (a 2016 consumer router flashed with third-party firmware) started randomly rebooting every few days.\n\nWhat I bought:\n- 1x pfSense box (repurposed mini PC, Intel N100, 8GB RAM, 2x 2.5GbE NICs) - $180 all in, already had the mini PC\n- 1x 8-port managed switch with PoE (for the access points and a future camera) - $95\n- 3x WiFi 6 access points, ceiling mounted - $260 for all three\n- ~120ft of Cat6 cable, wall plates, a keystone punch-down tool - $85\n- 1x small rack shelf for the closet where everything lives - $40\n\nTotal: ~$660. More than a mesh WiFi kit but I wanted actual VLANs and wired backhaul.\n\nPhysical layout: Fiber comes into the utility closet where the ONT lives. From there, one cable goes to the pfSense WAN port. pfSense LAN port goes to the switch. From the switch: three runs to ceiling APs (one per floor essentially - basement, main floor, upstairs), one run to the office where my desktop and NAS live, one run to the living room for the TV/consoles, and two spare ports for future use. I fished the cable through the attic and down interior walls, which was the worst part of the whole project - took a full Saturday just for that.\n\nVLAN design: I ended up with five VLANs.\n1. VLAN 10 - Trusted (my laptop, wife's laptop, phones) - full access to everything including the NAS\n2. VLAN 20 - IoT (smart plugs, thermostat, doorbell, the robot vacuum) - internet access only, no access to VLAN 10 or the NAS, since I don't trust any of these devices' firmware\n3. VLAN 30 - Guest - internet only, isolated from everything, auto-expiring WiFi password rotated monthly\n4. VLAN 40 - Kids - internet access, DNS-level content filtering via pfBlockerNG, time-of-day access restrictions (cuts off at 9pm on school nights)\n5. VLAN 50 - Cameras/NVR - fully isolated, no internet access at all, since there's no reason a camera needs to phone home and I'd rather it just talk to the local NVR\n\nFirewall rules: default deny between VLANs, then explicit allow rules for the few things that need to cross (e.g., my laptop on VLAN 10 needs to reach the NVR web UI on VLAN 50 to view camera feeds; added a narrow rule for just that one port). Took a few iterations to get right - I initially blocked mDNS between VLANs which broke Chromecast discovery, had to add a reflector rule for that specifically since I wanted to cast from VLAN 10 to a Chromecast that's technically on VLAN 20 with the rest of the IoT stuff.\n\nWiFi SSIDs: one SSID per VLAN except guest and kids share a naming convention people recognize. Used the same AP hardware to broadcast all of them via VLAN tagging on the AP's uplink - each AP has one Ethernet cable but broadcasts 4 SSIDs, each mapped to its own VLAN. This was the part I was most nervous about but it just worked once I set the trunk port correctly on the switch.\n\nResults after two weeks: dead zone in the back bedroom is completely gone - that room now gets full signal from the nearest ceiling AP instead of relying on the old router two floors away. Video calls haven't dropped once, even with three people on calls simultaneously plus kids streaming. Also nice to finally have real visibility - pfSense's traffic graphs showed me that the smart TV was doing something like 4GB/day of background traffic even when off standby, which sent me down a whole separate rabbit hole of blocking specific ad/telemetry domains for it via pfBlockerNG.\n\nThings I'd do differently: should have pulled two cables to each AP location instead of one (redundancy, and option for PoE++ if I upgrade AP hardware later that needs more power). Also underestimated how long the cable fishing would take - budget a full weekend for that alone if your house has similar construction (old plaster walls, no easy chases). Would also buy a proper cable tester up front instead of borrowing one halfway through - wasted an hour troubleshooting a 'bad AP' that turned out to be a bad crimp on one end.\n\nNext project: probably a proper UPS for the closet rack so a power blip doesn't take down the whole network, and maybe setting up a WireGuard VPN on pfSense for remote access instead of the ad-hoc solution I'm using now.",
+    createdAt: "2025-08-02",
+  },
+];
