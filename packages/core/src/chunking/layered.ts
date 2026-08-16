@@ -9,10 +9,7 @@ import { ParagraphChunker } from "./paragraph.js";
  * tags its own chunks with its own `layer`).
  */
 export class LayeredChunker implements ChunkingStrategy {
-  readonly name: string;
-  private readonly strategies: ChunkingStrategy[];
-
-  constructor(strategies: ChunkingStrategy[], name = "layered") {
+  constructor(private readonly strategies: ChunkingStrategy[], readonly name = "layered") {
     this.strategies = strategies;
     this.name = name;
   }
