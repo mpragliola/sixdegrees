@@ -10,8 +10,10 @@ import {
 } from "./strategies.js";
 import { LabChunkIndex, type LabSearchResult, type SimilarityMetric } from "./chunkIndex.js";
 import { buildHighlightedNote, globalScoreRange } from "./highlight.js";
+import { IndexedDbEmbeddingCache } from "./indexedDbCache.js";
 
 const notesById = new Map<string, Note>(demoNotes.map((n) => [n.id, n]));
+const embeddingCache = new IndexedDbEmbeddingCache();
 
 // ---- state ----
 let strategyId = strategyOptions[0]!.id;
@@ -24,7 +26,7 @@ let overlap = DEFAULT_OVERLAP;
 let query = "";
 
 let index = new LabChunkIndex();
-let embedder = new TransformersEmbeddingProvider({ modelId });
+let embedder = new TransformersEmbeddingProvider({ modelId, cache: embeddingCache });
 let building = false;
 let buildError: string | null = null;
 let searching = false;
@@ -350,6 +352,7 @@ async function rebuildIndex() {
     modelLoadProgress = null;
     embedder = new TransformersEmbeddingProvider({
       modelId,
+      cache: embeddingCache,
       onModelLoadProgress: (p) => {
         modelLoadProgress = p;
         renderStatus();
