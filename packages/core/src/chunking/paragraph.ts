@@ -17,7 +17,7 @@ export class ParagraphChunker implements ChunkingStrategy {
     let paraIndex = 0;
     let match: RegExpExecArray | null;
 
-    const pushParagraph = (raw: string, start: number, end: number) => {
+    const pushParagraph = (raw: string, start: number, _end: number) => {
       const trimmed = raw.trim();
       if (trimmed.length === 0) return;
       const trimStart = start + raw.indexOf(trimmed);

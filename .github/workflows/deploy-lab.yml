@@ -1,0 +1,83 @@
+name: Deploy Lab
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/lab/**"
+      - "packages/core/**"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - ".github/workflows/deploy-lab.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-lab
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm build:core
+
+      - name: Build lab
+        working-directory: packages/lab
+        env:
+          VITE_BASE_PATH: /sixdegrees-lab/
+        run: pnpm build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lab-dist
+          path: packages/lab/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download built site
+        uses: actions/download-artifact@v4
+        with:
+          name: lab-dist
+          path: lab-dist
+
+      - name: Checkout gh-pages
+        uses: actions/checkout@v5
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Replace only the sixdegrees-lab subfolder
+        run: |
+          set -euo pipefail
+          rm -rf gh-pages/sixdegrees-lab
+          mkdir -p gh-pages/sixdegrees-lab
+          cp -r lab-dist/. gh-pages/sixdegrees-lab/
+
+      - name: Commit and push
+        working-directory: gh-pages
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add sixdegrees-lab
+          if git diff --cached --quiet; then
+            echo "No changes to deploy"
+            exit 0
+          fi
+          git commit -m "Deploy sixdegrees-lab from ${GITHUB_SHA::7}"
+          git push origin gh-pages
