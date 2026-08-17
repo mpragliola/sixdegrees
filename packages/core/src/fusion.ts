@@ -1,5 +1,5 @@
 /**
- * Score fusion: combines per-chunk similarity/tfidf scores into a single
+ * Score fusion: combines per-chunk similarity/lexical scores into a single
  * per-note score across chunking layers.
  *
  * "max": note score = max over all its chunk scores, layer weights ignored.

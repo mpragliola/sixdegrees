@@ -25,6 +25,12 @@ export interface SentenceWindowOptions {
   windowSize?: number;
   /** Number of sentences of overlap between consecutive windows. Default 1. */
   overlap?: number;
+  /**
+   * When true, each chunk gets `embeddingText = "${title}\n\n${text}"` so the
+   * embedding carries note-level context. Skipped when the title is empty.
+   * `text`/charStart/charEnd are unaffected. Default false.
+   */
+  contextualize?: boolean;
 }
 
 /**
@@ -35,10 +41,12 @@ export class SentenceWindowChunker implements ChunkingStrategy {
   readonly name = "sentence-window";
   private readonly windowSize: number;
   private readonly overlap: number;
+  private readonly contextualize: boolean;
 
   constructor(options: SentenceWindowOptions = {}) {
     this.windowSize = options.windowSize ?? 3;
     this.overlap = options.overlap ?? 1;
+    this.contextualize = options.contextualize ?? false;
     if (this.windowSize <= 0) {
       throw new Error("windowSize must be > 0");
     }
@@ -50,6 +58,8 @@ export class SentenceWindowChunker implements ChunkingStrategy {
   chunk(note: { id: string; title: string; body: string }): Chunk[] {
     const sentences = splitSentences(note.body);
     if (sentences.length === 0) return [];
+
+    const title = note.title.trim();
 
     const step = this.windowSize - this.overlap;
     const chunks: Chunk[] = [];
@@ -63,14 +73,18 @@ export class SentenceWindowChunker implements ChunkingStrategy {
       const last = windowSentences[windowSentences.length - 1]!;
       const text = note.body.slice(first.start, last.end).trim();
 
-      chunks.push({
+      const chunk: Chunk = {
         id: `${note.id}::sentence-window::${windowIndex}`,
         noteId: note.id,
         layer: "sentence-window",
         text,
         charStart: first.start,
         charEnd: last.end,
-      });
+      };
+      if (this.contextualize && title.length > 0) {
+        chunk.embeddingText = `${title}\n\n${text}`;
+      }
+      chunks.push(chunk);
       windowIndex++;
 
       if (i + this.windowSize >= sentences.length) break;

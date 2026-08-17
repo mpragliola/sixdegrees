@@ -24,6 +24,7 @@ let fusionMethod: FusionMethod = "max";
 let layerWeights: Record<string, number> = {};
 let windowSize = DEFAULT_WINDOW_SIZE;
 let overlap = DEFAULT_OVERLAP;
+let contextualize = false;
 let query = "";
 
 let index = new LabChunkIndex();
@@ -66,6 +67,12 @@ app.innerHTML = `
           <label for="fusion-select">Fusion method</label>
           <select id="fusion-select"></select>
         </div>
+        <div class="control checkbox-control" id="contextualize-control" hidden>
+          <label for="contextualize-checkbox">
+            <input type="checkbox" id="contextualize-checkbox" />
+            Contextualize chunks (prepend title)
+          </label>
+        </div>
         <div class="weights-panel" id="weights-panel" hidden></div>
         <div class="window-panel" id="window-panel" hidden></div>
       </div>
@@ -89,6 +96,8 @@ const strategySelect = document.getElementById("strategy-select") as HTMLSelectE
 const modelSelect = document.getElementById("model-select") as HTMLSelectElement;
 const similaritySelect = document.getElementById("similarity-select") as HTMLSelectElement;
 const fusionSelect = document.getElementById("fusion-select") as HTMLSelectElement;
+const contextualizeControl = document.getElementById("contextualize-control") as HTMLDivElement;
+const contextualizeCheckbox = document.getElementById("contextualize-checkbox") as HTMLInputElement;
 const weightsPanel = document.getElementById("weights-panel") as HTMLDivElement;
 const windowPanel = document.getElementById("window-panel") as HTMLDivElement;
 const statusRow = document.getElementById("status-row") as HTMLDivElement;
@@ -207,6 +216,11 @@ function renderWindowPanel() {
     overlap = parseInt(overlapSlider.value, 10);
     void rebuildIndex().then(() => runSearch());
   });
+}
+
+function renderContextualizeControl() {
+  contextualizeControl.hidden = !currentStrategy().hasContextualize;
+  contextualizeCheckbox.checked = contextualize;
 }
 
 function renderWeightsPanel() {
@@ -341,7 +355,7 @@ renderNotesList();
 
 // ---- index building ----
 async function rebuildIndex() {
-  log("app", `rebuildIndex start: strategy=${strategyId}, model=${modelId}, window=${windowSize}, overlap=${overlap}`);
+  log("app", `rebuildIndex start: strategy=${strategyId}, model=${modelId}, window=${windowSize}, overlap=${overlap}, contextualize=${contextualize}`);
   const rebuildStart = performance.now();
   building = true;
   buildError = null;
@@ -363,7 +377,7 @@ async function rebuildIndex() {
       },
     });
     index = new LabChunkIndex();
-    const chunker = currentStrategy().create({ windowSize, overlap });
+    const chunker = currentStrategy().create({ windowSize, overlap, contextualize });
     log("app", `about to call index.build()...`);
     await index.build(demoNotes, chunker, embedder, (done, total) => {
       buildProgress = { done, total };
@@ -432,6 +446,12 @@ strategySelect.addEventListener("change", () => {
   overlap = DEFAULT_OVERLAP;
   renderWeightsPanel();
   renderWindowPanel();
+  renderContextualizeControl();
+  void rebuildIndex().then(() => runSearch());
+});
+
+contextualizeCheckbox.addEventListener("change", () => {
+  contextualize = contextualizeCheckbox.checked;
   void rebuildIndex().then(() => runSearch());
 });
 
@@ -455,4 +475,5 @@ fusionSelect.addEventListener("change", () => {
 log("app", "lab initialized, starting first index build");
 renderWeightsPanel();
 renderWindowPanel();
+renderContextualizeControl();
 void rebuildIndex();

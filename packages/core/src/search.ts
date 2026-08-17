@@ -49,7 +49,9 @@ export class InMemorySearchIndex implements SearchIndex {
 
     this.embedder = embedder;
 
-    const texts = allChunks.map((c) => c.text);
+    // Embed embeddingText when present (e.g. title-contextualized chunks),
+    // falling back to the plain chunk text.
+    const texts = allChunks.map((c) => c.embeddingText ?? c.text);
     const embeddings = texts.length > 0 ? await embedder.embed(texts) : [];
 
     this.indexed = allChunks.map((chunk, i) => ({
@@ -57,7 +59,11 @@ export class InMemorySearchIndex implements SearchIndex {
       embedding: embeddings[i]!,
     }));
 
-    this.bm25 = new Bm25Index(allChunks.map((c) => ({ id: c.id, text: c.text })));
+    // BM25 deliberately indexes the same embeddingText ?? text the
+    // embedding path uses, so the contextualize toggle applies uniformly to
+    // both lexical and semantic retrieval (a title term then also matches
+    // lexically in paragraph chunks).
+    this.bm25 = new Bm25Index(allChunks.map((c) => ({ id: c.id, text: c.embeddingText ?? c.text })));
   }
 
   async search(query: string, opts: SearchOptions): Promise<SearchResult[]> {

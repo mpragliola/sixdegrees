@@ -6,6 +6,13 @@ import {
   type ChunkingStrategy,
 } from "sixdegrees";
 
+export interface StrategyParams {
+  windowSize: number;
+  overlap: number;
+  /** Prepend the note title to paragraph/sentence-window embedding text. */
+  contextualize?: boolean;
+}
+
 export interface StrategyOption {
   id: string;
   label: string;
@@ -13,7 +20,9 @@ export interface StrategyOption {
   layers: string[];
   /** True if this strategy's chunker takes { windowSize, overlap }, for driving the window/overlap slider UI. */
   hasWindowParams?: boolean;
-  create: (windowParams?: { windowSize: number; overlap: number }) => ChunkingStrategy;
+  /** True if this strategy supports the contextualize (title-prefixed embedding) toggle. */
+  hasContextualize?: boolean;
+  create: (params?: StrategyParams) => ChunkingStrategy;
 }
 
 export const DEFAULT_WINDOW_SIZE = 3;
@@ -30,24 +39,28 @@ export const strategyOptions: StrategyOption[] = [
     id: "paragraph",
     label: "Paragraphs",
     layers: ["paragraph"],
-    create: () => new ParagraphChunker(),
+    hasContextualize: true,
+    create: (params) => new ParagraphChunker({ contextualize: params?.contextualize ?? false }),
   },
   {
     id: "sentence-window",
     label: "Sentence windows",
     layers: ["sentence-window"],
     hasWindowParams: true,
-    create: (windowParams) =>
+    hasContextualize: true,
+    create: (params) =>
       new SentenceWindowChunker({
-        windowSize: windowParams?.windowSize ?? DEFAULT_WINDOW_SIZE,
-        overlap: windowParams?.overlap ?? DEFAULT_OVERLAP,
+        windowSize: params?.windowSize ?? DEFAULT_WINDOW_SIZE,
+        overlap: params?.overlap ?? DEFAULT_OVERLAP,
+        contextualize: params?.contextualize ?? false,
       }),
   },
   {
     id: "layered",
     label: "Layered (title + note + paragraphs)",
     layers: ["title", "note", "paragraph"],
-    create: () => new TitleAwareLayeredChunker(),
+    hasContextualize: true,
+    create: (params) => new TitleAwareLayeredChunker({ contextualize: params?.contextualize ?? false }),
   },
 ];
 
