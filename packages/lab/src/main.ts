@@ -11,6 +11,7 @@ import {
 import { LabChunkIndex, type LabSearchResult, type SimilarityMetric } from "./chunkIndex.js";
 import { buildHighlightedNote, globalScoreRange } from "./highlight.js";
 import { IndexedDbEmbeddingCache } from "./indexedDbCache.js";
+import { log } from "./log.js";
 
 const notesById = new Map<string, Note>(demoNotes.map((n) => [n.id, n]));
 const embeddingCache = new IndexedDbEmbeddingCache();
@@ -340,6 +341,8 @@ renderNotesList();
 
 // ---- index building ----
 async function rebuildIndex() {
+  log("app", `rebuildIndex start: strategy=${strategyId}, model=${modelId}, window=${windowSize}, overlap=${overlap}`);
+  const rebuildStart = performance.now();
   building = true;
   buildError = null;
   indexReady = false;
@@ -354,19 +357,24 @@ async function rebuildIndex() {
       modelId,
       cache: embeddingCache,
       onModelLoadProgress: (p) => {
+        log("app", `model load progress: ${p.status} ${p.file ? p.file : ""} ${p.progress ? `${(p.progress * 100).toFixed(0)}%` : ""}`);
         modelLoadProgress = p;
         renderStatus();
       },
     });
     index = new LabChunkIndex();
     const chunker = currentStrategy().create({ windowSize, overlap });
+    log("app", `about to call index.build()...`);
     await index.build(demoNotes, chunker, embedder, (done, total) => {
       buildProgress = { done, total };
       renderStatus();
     });
+    embeddingCache.logSummary("index build");
     indexReady = true;
+    log("app", `rebuildIndex success in ${(performance.now() - rebuildStart).toFixed(0)}ms`);
   } catch (err) {
     buildError = err instanceof Error ? err.message : String(err);
+    log("app", `rebuildIndex FAILED: ${buildError}`);
   } finally {
     building = false;
     buildProgress = null;
@@ -384,6 +392,8 @@ async function runSearch() {
     renderResults();
     return;
   }
+  log("app", `runSearch: query="${query}", similarity=${similarity}, fusion=${fusionMethod}`);
+  const searchStart = performance.now();
   searching = true;
   renderStatus();
   try {
@@ -395,6 +405,7 @@ async function runSearch() {
       },
       topK: 10,
     });
+    log("app", `search returned ${results.length} results in ${(performance.now() - searchStart).toFixed(0)}ms`);
   } finally {
     searching = false;
     renderStatus();
@@ -441,6 +452,7 @@ fusionSelect.addEventListener("change", () => {
 });
 
 // ---- init ----
+log("app", "lab initialized, starting first index build");
 renderWeightsPanel();
 renderWindowPanel();
 void rebuildIndex();
