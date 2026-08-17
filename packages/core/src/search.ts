@@ -1,9 +1,9 @@
 import type { Chunk, ChunkingStrategy, EmbeddingProvider, Note } from "./types.js";
 import { cosineSimilarity, dotProduct, euclideanSimilarity, type SimilarityFn } from "./similarity.js";
 import { fuseChunkScores, type ChunkScore, type FusionConfig } from "./fusion.js";
-import { TfIdfIndex } from "./tfidf.js";
+import { Bm25Index } from "./bm25.js";
 
-export type SimilarityMetric = "cosine" | "dot" | "euclidean" | "tfidf";
+export type SimilarityMetric = "cosine" | "dot" | "euclidean" | "bm25";
 
 export interface SearchResult {
   noteId: string;
@@ -22,7 +22,7 @@ export interface SearchIndex {
   search(query: string, opts: SearchOptions): Promise<SearchResult[]>;
 }
 
-const SIMILARITY_FNS: Record<Exclude<SimilarityMetric, "tfidf">, SimilarityFn> = {
+const SIMILARITY_FNS: Record<Exclude<SimilarityMetric, "bm25">, SimilarityFn> = {
   cosine: cosineSimilarity,
   dot: dotProduct,
   euclidean: euclideanSimilarity,
@@ -36,7 +36,7 @@ interface IndexedChunk {
 /**
  * In-memory search index: holds chunks + their embeddings as a flat array
  * (no vector DB — this is a lab/experimentation library). Also maintains a
- * TfIdfIndex over the same chunk texts so `similarity: "tfidf"` can bypass
+ * Bm25Index over the same chunk texts so `similarity: "bm25"` can bypass
  * embeddings entirely while still going through the same fusion pipeline.
  *
  * The embedder passed to build() is retained so search() can embed the
@@ -44,7 +44,7 @@ interface IndexedChunk {
  */
 export class InMemorySearchIndex implements SearchIndex {
   private indexed: IndexedChunk[] = [];
-  private tfidf: TfIdfIndex | null = null;
+  private bm25: Bm25Index | null = null;
   private embedder: EmbeddingProvider | null = null;
 
   async build(notes: Note[], chunker: ChunkingStrategy, embedder: EmbeddingProvider): Promise<void> {
@@ -63,7 +63,7 @@ export class InMemorySearchIndex implements SearchIndex {
       embedding: embeddings[i]!,
     }));
 
-    this.tfidf = new TfIdfIndex(allChunks.map((c) => ({ id: c.id, text: c.text })));
+    this.bm25 = new Bm25Index(allChunks.map((c) => ({ id: c.id, text: c.text })));
   }
 
   async search(query: string, opts: SearchOptions): Promise<SearchResult[]> {
@@ -71,14 +71,14 @@ export class InMemorySearchIndex implements SearchIndex {
     let chunkScores: ChunkScore[];
     let scoreByChunkId: Map<string, number>;
 
-    if (opts.similarity === "tfidf") {
-      if (!this.tfidf) {
+    if (opts.similarity === "bm25") {
+      if (!this.bm25) {
         throw new Error("Index not built. Call build() before search().");
       }
       // Request scores for every chunk so fusion sees the full picture, not
       // just a pre-fusion top-K of raw chunks.
-      const tfidfResults = this.tfidf.search(query, this.indexed.length || 1);
-      scoreByChunkId = new Map(tfidfResults.map((r) => [r.id, r.score]));
+      const bm25Results = this.bm25.search(query, this.indexed.length || 1);
+      scoreByChunkId = new Map(bm25Results.map((r) => [r.id, r.score]));
       chunkScores = this.indexed
         .map(({ chunk }) => ({
           noteId: chunk.noteId,

@@ -60,7 +60,7 @@ export const similarityOptions = [
   { id: "cosine", label: "Cosine" },
   { id: "dot", label: "Dot product" },
   { id: "euclidean", label: "Euclidean" },
-  { id: "tfidf", label: "TF-IDF (lexical)" },
+  { id: "bm25", label: "BM25 (lexical)" },
 ] as const;
 
 export const fusionOptions = [
