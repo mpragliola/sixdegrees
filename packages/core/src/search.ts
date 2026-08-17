@@ -1,9 +1,9 @@
 import type { Chunk, ChunkingStrategy, EmbeddingProvider, Note } from "./types.js";
-import { cosineSimilarity, dotProduct, euclideanSimilarity, type SimilarityFn } from "./similarity.js";
+import { cosineSimilarity } from "./similarity.js";
 import { fuseChunkScores, type ChunkScore, type FusionConfig } from "./fusion.js";
 import { TfIdfIndex } from "./tfidf.js";
 
-export type SimilarityMetric = "cosine" | "dot" | "euclidean" | "tfidf";
+export type SimilarityMetric = "cosine" | "tfidf";
 
 export interface SearchResult {
   noteId: string;
@@ -21,12 +21,6 @@ export interface SearchIndex {
   build(notes: Note[], chunker: ChunkingStrategy, embedder: EmbeddingProvider): Promise<void>;
   search(query: string, opts: SearchOptions): Promise<SearchResult[]>;
 }
-
-const SIMILARITY_FNS: Record<Exclude<SimilarityMetric, "tfidf">, SimilarityFn> = {
-  cosine: cosineSimilarity,
-  dot: dotProduct,
-  euclidean: euclideanSimilarity,
-};
 
 interface IndexedChunk {
   chunk: Chunk;
@@ -90,7 +84,6 @@ export class InMemorySearchIndex implements SearchIndex {
       if (!this.embedder) {
         throw new Error("Index not built. Call build() before search().");
       }
-      const simFn = SIMILARITY_FNS[opts.similarity];
       const [queryEmbedding] = await this.embedder.embed([query]);
       if (!queryEmbedding) {
         chunkScores = [];
@@ -98,7 +91,7 @@ export class InMemorySearchIndex implements SearchIndex {
       } else {
         scoreByChunkId = new Map();
         chunkScores = this.indexed.map(({ chunk, embedding }) => {
-          const score = simFn(queryEmbedding, embedding);
+          const score = cosineSimilarity(queryEmbedding, embedding);
           scoreByChunkId.set(chunk.id, score);
           return { noteId: chunk.noteId, layer: chunk.layer, score };
         });

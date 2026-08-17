@@ -10,8 +10,6 @@
  */
 import {
   cosineSimilarity,
-  dotProduct,
-  euclideanSimilarity,
   fuseChunkScores,
   TfIdfIndex,
   type Chunk,
@@ -19,11 +17,10 @@ import {
   type EmbeddingProvider,
   type FusionConfig,
   type Note,
-  type SimilarityFn,
 } from "sixdegrees";
 import { log } from "./log.js";
 
-export type SimilarityMetric = "cosine" | "dot" | "euclidean" | "tfidf";
+export type SimilarityMetric = "cosine" | "tfidf";
 
 export interface ScoredChunk {
   chunk: Chunk;
@@ -36,12 +33,6 @@ export interface LabSearchResult {
   /** Best-scoring chunk per layer, descending by score. */
   matchedChunks: ScoredChunk[];
 }
-
-const SIMILARITY_FNS: Record<Exclude<SimilarityMetric, "tfidf">, SimilarityFn> = {
-  cosine: cosineSimilarity,
-  dot: dotProduct,
-  euclidean: euclideanSimilarity,
-};
 
 /**
  * transformers.js pads every sequence in a single embed() call to the length
@@ -123,7 +114,6 @@ export class LabChunkIndex {
       if (!this.embedder) throw new Error("Index not built.");
       log("search", `using embedding similarity (${opts.similarity}), embedding query...`);
       const embedStart = performance.now();
-      const simFn = SIMILARITY_FNS[opts.similarity];
       const [queryEmbedding] = await this.embedder.embed([query]);
       log("search", `query embedding took ${(performance.now() - embedStart).toFixed(0)}ms`);
       if (queryEmbedding) {
@@ -131,7 +121,7 @@ export class LabChunkIndex {
         this.chunks.forEach((chunk, i) => {
           const emb = this.embeddings[i];
           if (!emb) return;
-          scoreByChunkId.set(chunk.id, simFn(queryEmbedding, emb));
+          scoreByChunkId.set(chunk.id, cosineSimilarity(queryEmbedding, emb));
         });
         log("search", `scored ${this.chunks.length} chunks in ${(performance.now() - scoreStart).toFixed(0)}ms`);
       }
