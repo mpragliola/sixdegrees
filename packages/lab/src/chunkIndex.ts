@@ -1,6 +1,6 @@
 /**
  * A thin lab-side index built directly on sixdegrees' exported primitives
- * (chunkers, EmbeddingProvider, similarity fns, TfIdfIndex, fuseChunkScores)
+ * (chunkers, EmbeddingProvider, similarity fns, Bm25Index, fuseChunkScores)
  * rather than InMemorySearchIndex. We need this because InMemorySearchIndex
  * returns matchedChunks: Chunk[] without attaching per-chunk scores, which
  * we need for the "per-layer match badge" UI (spec: "small badges showing
@@ -11,7 +11,7 @@
 import {
   cosineSimilarity,
   fuseChunkScores,
-  TfIdfIndex,
+  Bm25Index,
   type Chunk,
   type ChunkingStrategy,
   type EmbeddingProvider,
@@ -20,7 +20,7 @@ import {
 } from "sixdegrees";
 import { log } from "./log.js";
 
-export type SimilarityMetric = "cosine" | "tfidf";
+export type SimilarityMetric = "cosine" | "bm25";
 
 export interface ScoredChunk {
   chunk: Chunk;
@@ -70,7 +70,7 @@ async function embedBatched(
 export class LabChunkIndex {
   private chunks: Chunk[] = [];
   private embeddings: Float32Array[] = [];
-  private tfidf: TfIdfIndex | null = null;
+  private bm25: Bm25Index | null = null;
   private embedder: EmbeddingProvider | null = null;
 
   async build(
@@ -91,9 +91,9 @@ export class LabChunkIndex {
     this.embedder = embedder;
     this.embeddings =
       chunks.length > 0 ? await embedBatched(embedder, chunks.map((c) => c.text), onProgress) : [];
-    const tfidfStart = performance.now();
-    this.tfidf = new TfIdfIndex(chunks.map((c) => ({ id: c.id, text: c.text })));
-    log("index", `tfidf index built in ${(performance.now() - tfidfStart).toFixed(0)}ms`);
+    const bm25Start = performance.now();
+    this.bm25 = new Bm25Index(chunks.map((c) => ({ id: c.id, text: c.text })));
+    log("index", `bm25 index built in ${(performance.now() - bm25Start).toFixed(0)}ms`);
     log("index", `build total: ${(performance.now() - buildStart).toFixed(0)}ms`);
   }
 
@@ -103,13 +103,13 @@ export class LabChunkIndex {
     const topK = opts.topK ?? 10;
     const scoreByChunkId = new Map<string, number>();
 
-    if (opts.similarity === "tfidf") {
-      if (!this.tfidf) throw new Error("Index not built.");
-      log("search", "using tfidf similarity");
-      const tfidfStart = performance.now();
-      const tfidfResults = this.tfidf.search(query, this.chunks.length || 1);
-      log("search", `tfidf scored ${tfidfResults.length} chunks in ${(performance.now() - tfidfStart).toFixed(0)}ms`);
-      for (const r of tfidfResults) scoreByChunkId.set(r.id, r.score);
+    if (opts.similarity === "bm25") {
+      if (!this.bm25) throw new Error("Index not built.");
+      log("search", "using bm25 similarity");
+      const bm25Start = performance.now();
+      const bm25Results = this.bm25.search(query, this.chunks.length || 1);
+      log("search", `bm25 scored ${bm25Results.length} chunks in ${(performance.now() - bm25Start).toFixed(0)}ms`);
+      for (const r of bm25Results) scoreByChunkId.set(r.id, r.score);
     } else {
       if (!this.embedder) throw new Error("Index not built.");
       log("search", `using embedding similarity (${opts.similarity}), embedding query...`);

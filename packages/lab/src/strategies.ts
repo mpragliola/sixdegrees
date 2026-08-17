@@ -58,7 +58,7 @@ export const modelOptions = [
 
 export const similarityOptions = [
   { id: "cosine", label: "Cosine" },
-  { id: "tfidf", label: "TF-IDF (lexical)" },
+  { id: "bm25", label: "BM25 (lexical)" },
 ] as const;
 
 export const fusionOptions = [
