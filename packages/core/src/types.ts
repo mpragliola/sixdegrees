@@ -17,6 +17,14 @@ export interface Chunk {
   text: string;
   charStart: number;
   charEnd: number;
+  /**
+   * Optional alternate text to use when embedding/indexing this chunk (e.g.
+   * the note title prepended for context: `${title}\n\n${text}`). When
+   * absent, `text` is embedded as-is. `text`/charStart/charEnd always keep
+   * describing the original span in the note body, so consumers that
+   * highlight or display the chunk should keep using `text`.
+   */
+  embeddingText?: string;
 }
 
 export interface ChunkingStrategy {

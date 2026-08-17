@@ -98,10 +98,15 @@ export class LabChunkIndex {
     log("index", `chunking done: ${chunks.length} chunks in ${(performance.now() - chunkStart).toFixed(0)}ms`);
     this.chunks = chunks;
     this.embedder = embedder;
+    // Embed/index embeddingText when present (title-contextualized chunks),
+    // falling back to plain text — mirrors core's InMemorySearchIndex so the
+    // contextualize toggle applies uniformly to embeddings and TF-IDF.
     this.embeddings =
-      chunks.length > 0 ? await embedBatched(embedder, chunks.map((c) => c.text), onProgress) : [];
+      chunks.length > 0
+        ? await embedBatched(embedder, chunks.map((c) => c.embeddingText ?? c.text), onProgress)
+        : [];
     const tfidfStart = performance.now();
-    this.tfidf = new TfIdfIndex(chunks.map((c) => ({ id: c.id, text: c.text })));
+    this.tfidf = new TfIdfIndex(chunks.map((c) => ({ id: c.id, text: c.embeddingText ?? c.text })));
     log("index", `tfidf index built in ${(performance.now() - tfidfStart).toFixed(0)}ms`);
     log("index", `build total: ${(performance.now() - buildStart).toFixed(0)}ms`);
   }

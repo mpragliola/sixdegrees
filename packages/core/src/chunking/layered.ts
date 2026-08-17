@@ -29,8 +29,24 @@ export class LayeredChunker implements ChunkingStrategy {
  * for a single note in one call. Implemented as a thin preset on top of
  * LayeredChunker.
  */
+export interface TitleAwareLayeredChunkerOptions {
+  /**
+   * Passed through to the paragraph sub-strategy: when true, paragraph chunks
+   * embed with the note title prepended (see ParagraphChunkerOptions). The
+   * title and whole-note layers already contain the title and are unaffected.
+   */
+  contextualize?: boolean;
+}
+
 export class TitleAwareLayeredChunker extends LayeredChunker {
-  constructor() {
-    super([new TitleOnlyChunker(), new WholeNoteChunker(), new ParagraphChunker()], "title-aware-layered");
+  constructor(options: TitleAwareLayeredChunkerOptions = {}) {
+    super(
+      [
+        new TitleOnlyChunker(),
+        new WholeNoteChunker(),
+        new ParagraphChunker({ contextualize: options.contextualize }),
+      ],
+      "title-aware-layered",
+    );
   }
 }
