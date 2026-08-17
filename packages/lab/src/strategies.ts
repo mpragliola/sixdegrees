@@ -67,6 +67,11 @@ export const strategyOptions: StrategyOption[] = [
 export const modelOptions = [
   { id: "Xenova/all-MiniLM-L6-v2", label: "all-MiniLM-L6-v2 (fast, 384-dim)" },
   { id: "Xenova/all-mpnet-base-v2", label: "all-mpnet-base-v2 (slower, 768-dim)" },
+  { id: "Xenova/gte-small", label: "gte-small (fast, 384-dim, ~34 MB)" },
+  { id: "Xenova/bge-small-en-v1.5", label: "bge-small-en-v1.5 (fast, 384-dim, ~34 MB)" },
+  { id: "Snowflake/snowflake-arctic-embed-s", label: "arctic-embed-s (fast, 384-dim, ~34 MB)" },
+  { id: "Xenova/multilingual-e5-small", label: "multilingual-e5-small (384-dim, ~118 MB)" },
+  { id: "nomic-ai/nomic-embed-text-v1.5", label: "nomic-embed-text-v1.5 (768-dim, ~137 MB)" },
 ];
 
 export const similarityOptions = [

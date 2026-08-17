@@ -33,6 +33,14 @@ export interface ChunkingStrategy {
 }
 
 /**
+ * Whether a text is a search query or an indexed passage. Asymmetric
+ * retrieval models (bge, arctic, e5, nomic, …) are trained with distinct
+ * query/passage prefixes and silently degrade if both sides are embedded
+ * identically; symmetric models ignore the distinction.
+ */
+export type EmbeddingRole = "query" | "passage";
+
+/**
  * Embedding provider abstraction. Implementations must work across browser,
  * Node, and Electron without leaking environment-specific globals into the
  * shared interface.
@@ -47,5 +55,6 @@ export interface EmbeddingProvider {
    * should dedupe concurrent/repeat calls.
    */
   load?(): Promise<void>;
-  embed(texts: string[]): Promise<Float32Array[]>;
+  /** `role` defaults to "passage"; pass "query" when embedding search queries. */
+  embed(texts: string[], role?: EmbeddingRole): Promise<Float32Array[]>;
 }

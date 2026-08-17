@@ -1,5 +1,5 @@
 import { pipeline, type FeatureExtractionPipeline } from "@huggingface/transformers";
-import type { EmbeddingProvider } from "./types.js";
+import type { EmbeddingProvider, EmbeddingRole } from "./types.js";
 
 /**
  * Storage-agnostic cache for computed (post-normalization) embedding
@@ -42,11 +42,44 @@ export interface ModelLoadProgress {
   total?: number;
 }
 
-/** Known embedding dimensions for common sentence-transformer models. */
-const KNOWN_DIMENSIONS: Record<string, number> = {
-  "Xenova/all-MiniLM-L6-v2": 384,
-  "Xenova/all-mpnet-base-v2": 768,
+/**
+ * Per-model embedding configuration. Asymmetric retrieval models require
+ * role prefixes (queries and passages embedded differently) and some are
+ * CLS-pooled rather than mean-pooled; getting either wrong doesn't error —
+ * it silently degrades retrieval quality, so the exact strings live here,
+ * verified against each model's card.
+ */
+export interface EmbeddingModelConfig {
+  dimensions?: number;
+  /** Prepended to texts embedded with role "query". */
+  queryPrefix?: string;
+  /** Prepended to texts embedded with role "passage". */
+  passagePrefix?: string;
+  /** Pooling strategy; defaults to "mean". */
+  pooling?: "mean" | "cls";
+}
+
+const BGE_QUERY_PREFIX = "Represent this sentence for searching relevant passages: ";
+
+/** Known configurations for common sentence-transformer models. */
+const MODEL_CONFIGS: Record<string, EmbeddingModelConfig> = {
+  "Xenova/all-MiniLM-L6-v2": { dimensions: 384 },
+  "Xenova/all-mpnet-base-v2": { dimensions: 768 },
+  "Xenova/gte-small": { dimensions: 384 },
+  "Xenova/bge-small-en-v1.5": { dimensions: 384, pooling: "cls", queryPrefix: BGE_QUERY_PREFIX },
+  "Snowflake/snowflake-arctic-embed-s": { dimensions: 384, pooling: "cls", queryPrefix: BGE_QUERY_PREFIX },
+  "Xenova/multilingual-e5-small": { dimensions: 384, queryPrefix: "query: ", passagePrefix: "passage: " },
+  "nomic-ai/nomic-embed-text-v1.5": {
+    dimensions: 768,
+    queryPrefix: "search_query: ",
+    passagePrefix: "search_document: ",
+  },
 };
+
+/** Resolve the config for a modelId; unknown models get symmetric mean-pooled defaults. */
+export function getModelConfig(modelId: string): EmbeddingModelConfig {
+  return MODEL_CONFIGS[modelId] ?? {};
+}
 
 function unitNormalize(vec: Float32Array): Float32Array {
   let normSq = 0;
@@ -74,6 +107,7 @@ function unitNormalize(vec: Float32Array): Float32Array {
 export class TransformersEmbeddingProvider implements EmbeddingProvider {
   readonly modelId: string;
   private _dimensions: number | null;
+  private readonly config: EmbeddingModelConfig;
   private static pipelineCache = new Map<string, Promise<FeatureExtractionPipeline>>();
 
   private readonly onModelLoadProgress?: (progress: ModelLoadProgress) => void;
@@ -84,10 +118,13 @@ export class TransformersEmbeddingProvider implements EmbeddingProvider {
       modelId?: string;
       onModelLoadProgress?: (progress: ModelLoadProgress) => void;
       cache?: EmbeddingCache;
+      /** Overrides the built-in MODEL_CONFIGS entry (or lack thereof) for this modelId. */
+      modelConfig?: EmbeddingModelConfig;
     } = {},
   ) {
     this.modelId = options.modelId ?? DEFAULT_MODEL_ID;
-    this._dimensions = KNOWN_DIMENSIONS[this.modelId] ?? null;
+    this.config = options.modelConfig ?? getModelConfig(this.modelId);
+    this._dimensions = this.config.dimensions ?? null;
     this.onModelLoadProgress = options.onModelLoadProgress;
     this.cache = options.cache;
   }
@@ -96,7 +133,7 @@ export class TransformersEmbeddingProvider implements EmbeddingProvider {
     if (this._dimensions === null) {
       throw new Error(
         `Dimensions for model "${this.modelId}" are not yet known — call embed() at least once first, ` +
-          `or add it to KNOWN_DIMENSIONS in embedding.ts.`,
+          `or add it to MODEL_CONFIGS in embedding.ts.`,
       );
     }
     return this._dimensions;
@@ -140,8 +177,15 @@ export class TransformersEmbeddingProvider implements EmbeddingProvider {
     }
   }
 
-  async embed(texts: string[]): Promise<Float32Array[]> {
+  async embed(texts: string[], role: EmbeddingRole = "passage"): Promise<Float32Array[]> {
     if (texts.length === 0) return [];
+
+    // Apply the model's role prefix before caching/embedding: prefixed text
+    // IS the input from the model's point of view, so the (modelId, text)
+    // cache keys off it and query/passage embeddings of the same string
+    // never collide.
+    const prefix = (role === "query" ? this.config.queryPrefix : this.config.passagePrefix) ?? "";
+    if (prefix) texts = texts.map((t) => prefix + t);
 
     const results: (Float32Array | undefined)[] = new Array(texts.length);
     const missIndices: number[] = [];
@@ -165,7 +209,10 @@ export class TransformersEmbeddingProvider implements EmbeddingProvider {
     if (missIndices.length > 0) {
       const extractor = await this.getPipeline();
       const missTexts = missIndices.map((i) => texts[i]!);
-      const output = await extractor(missTexts, { pooling: "mean", normalize: false });
+      const output = await extractor(missTexts, {
+        pooling: this.config.pooling ?? "mean",
+        normalize: false,
+      });
       // output.dims: [batch, hiddenSize]; output.data: flat Float32Array-like.
       const dims = output.dims as number[];
       const hiddenSize = dims[dims.length - 1]!;

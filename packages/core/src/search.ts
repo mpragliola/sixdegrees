@@ -52,7 +52,7 @@ export class InMemorySearchIndex implements SearchIndex {
     // Embed embeddingText when present (e.g. title-contextualized chunks),
     // falling back to the plain chunk text.
     const texts = allChunks.map((c) => c.embeddingText ?? c.text);
-    const embeddings = texts.length > 0 ? await embedder.embed(texts) : [];
+    const embeddings = texts.length > 0 ? await embedder.embed(texts, "passage") : [];
 
     this.indexed = allChunks.map((chunk, i) => ({
       chunk,
@@ -90,7 +90,7 @@ export class InMemorySearchIndex implements SearchIndex {
       if (!this.embedder) {
         throw new Error("Index not built. Call build() before search().");
       }
-      const [queryEmbedding] = await this.embedder.embed([query]);
+      const [queryEmbedding] = await this.embedder.embed([query], "query");
       if (!queryEmbedding) {
         chunkScores = [];
         scoreByChunkId = new Map();

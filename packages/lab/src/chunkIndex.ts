@@ -49,6 +49,8 @@ async function embedBatched(
   texts: string[],
   onProgress?: (done: number, total: number) => void,
 ): Promise<Float32Array[]> {
+  // Corpus chunks are always the "passage" side; queries are embedded
+  // separately in search() with role "query".
   log("embed", `embedBatched: ${texts.length} texts, batch size ${EMBED_BATCH_SIZE}`);
   const batchStart = performance.now();
   const out: Float32Array[] = [];
@@ -56,7 +58,7 @@ async function embedBatched(
   for (let i = 0; i < texts.length; i += EMBED_BATCH_SIZE) {
     const batch = texts.slice(i, i + EMBED_BATCH_SIZE);
     const t0 = performance.now();
-    out.push(...(await embedder.embed(batch)));
+    out.push(...(await embedder.embed(batch, "passage")));
     log("embed", `batch [${i}, ${Math.min(i + EMBED_BATCH_SIZE, texts.length)}) took ${(performance.now() - t0).toFixed(0)}ms`);
     onProgress?.(Math.min(i + EMBED_BATCH_SIZE, texts.length), texts.length);
     // Yield to the event loop between batches so the UI (spinner/progress
@@ -119,7 +121,7 @@ export class LabChunkIndex {
       if (!this.embedder) throw new Error("Index not built.");
       log("search", `using embedding similarity (${opts.similarity}), embedding query...`);
       const embedStart = performance.now();
-      const [queryEmbedding] = await this.embedder.embed([query]);
+      const [queryEmbedding] = await this.embedder.embed([query], "query");
       log("search", `query embedding took ${(performance.now() - embedStart).toFixed(0)}ms`);
       if (queryEmbedding) {
         const scoreStart = performance.now();
