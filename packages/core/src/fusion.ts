@@ -6,9 +6,12 @@
  *
  * "weighted-sum": for each note, take the BEST chunk score per layer that is
  * present for that note, multiply by that layer's weight (default 1 if
- * unspecified in layerWeights), and sum across layers. This is the default
- * fusion strategy per user choice — RRF was explicitly rejected and is not
- * implemented.
+ * unspecified in layerWeights), sum across layers, then divide by the total
+ * weight of the layers PRESENT for that note. The normalization keeps notes
+ * comparable when they lack some layers (e.g. a body-less note has no
+ * paragraph chunks and would otherwise be structurally capped below fuller
+ * notes). This is the default fusion strategy per user choice — RRF was
+ * explicitly rejected and is not implemented.
  */
 
 export type FusionMethod = "max" | "weighted-sum";
@@ -61,11 +64,13 @@ export function fuseChunkScores(chunkScores: ChunkScore[], config: FusionConfig)
   const results: NoteScore[] = [];
   for (const [noteId, layerMap] of bestPerLayer.entries()) {
     let sum = 0;
+    let weightSum = 0;
     for (const [layer, score] of layerMap.entries()) {
       const weight = config.layerWeights?.[layer] ?? 1;
       sum += score * weight;
+      weightSum += weight;
     }
-    results.push({ noteId, score: sum });
+    results.push({ noteId, score: weightSum > 0 ? sum / weightSum : 0 });
   }
   results.sort((a, b) => b.score - a.score);
   return results;
