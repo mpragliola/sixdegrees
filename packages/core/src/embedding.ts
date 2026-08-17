@@ -68,10 +68,8 @@ function unitNormalize(vec: Float32Array): Float32Array {
  * modelId so repeated `embed()` calls (and repeated construction with the
  * same modelId) don't reload the model.
  *
- * Embeddings are unit-normalized at embed time so cosine similarity, dot
- * product, and euclidean similarity are all computed on the same normalized
- * vectors — this keeps the three metrics comparable in scale, and euclidean
- * distance remains meaningful on the unit hypersphere (range [0, 2]).
+ * Embeddings are unit-normalized at embed time, so cosine similarity
+ * reduces to a plain dot product on the unit hypersphere.
  */
 export class TransformersEmbeddingProvider implements EmbeddingProvider {
   readonly modelId: string;
